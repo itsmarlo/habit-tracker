@@ -7,4 +7,9 @@ const graphDetailAssertion = (cell) => {
   return cell.title === cell.getAttribute('aria-label');
 };
 
-if (typeof module !== 'undefined') module.exports = { graphDetailAssertion };
+const monthLabelsAssertion = (labels) => {
+  const expected = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  return labels.filter(Boolean).join('|') === expected.join('|');
+};
+
+if (typeof module !== 'undefined') module.exports = { graphDetailAssertion, monthLabelsAssertion };

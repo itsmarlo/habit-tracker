@@ -79,7 +79,7 @@ function renderHeatmap() {
   const days = [];
   for (let date = new Date(start); date <= end; date.setDate(date.getDate() + 1)) days.push(new Date(date));
   const monthStarts = {};
-  days.forEach((date, index) => { const week = Math.floor(index / 7); if (date.getDate() <= 7 && monthStarts[week] === undefined) monthStarts[week] = date.toLocaleDateString(undefined, { month: 'short' }); });
+  days.forEach((date, index) => { const week = Math.floor(index / 7); if (date.getFullYear() === year && date.getDate() === 1) monthStarts[week] = date.toLocaleDateString(undefined, { month: 'short' }); });
   const cells = ['<div></div>', ...Array.from({ length: 53 }, (_, week) => `<span class="month-label" style="grid-column:${week + 2};grid-row:1">${monthStarts[week] || ''}</span>`), ...['Sun', '', 'Tue', '', 'Thu', '', 'Sat'].map((label, index) => `<span class="weekday-label" style="grid-column:1;grid-row:${index + 2}">${label}</span>`), ...days.map((date) => {
     const key = dateKey(date); const count = state.habits.filter((habit) => isComplete(habit, key)).length; const future = date > today || date.getFullYear() !== year;
     const detail = `${key}: ${formatCount(count, 'habit')} complete`;
