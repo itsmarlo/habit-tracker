@@ -54,34 +54,55 @@ const initial = await evaluate(`(() => ({
   curriculumOnHome: Boolean(document.querySelector('main #curriculum-heading')),
   pathDialogOpen: document.querySelector('#path-dialog')?.open,
   pathTrigger: document.querySelector('[data-action="open-path"]')?.textContent.replace(/\\s+/g, ' ').trim(),
+  pathTriggerCount: document.querySelectorAll('[data-action="open-path"]').length,
+  pathOption: document.querySelector('#habit-path option[value="tfm-professional"]')?.textContent,
+  loggingHelp: document.querySelector('#logging-help')?.textContent.replace(/\\s+/g, ' ').trim(),
+  heatmapMode: document.querySelector('#heatmap-mode')?.textContent.trim(),
   phases: document.querySelectorAll('.phase-step').length,
   checkpointCount: document.querySelectorAll('.evidence-button').length,
   progress: document.querySelector('.curriculum-progress')?.getAttribute('aria-valuenow'),
-  studyButton: document.querySelector('[data-action="toggle-tfm"]')?.textContent.trim(),
+  studyButton: document.querySelector('[data-action="toggle-path-habit"]')?.textContent.trim(),
   weekdays: [...document.querySelectorAll('.weekday-label')].map((label) => label.textContent)
 }))()`);
 assert.deepEqual(initial, {
   title: 'Tabular foundation models', curriculumOnHome: false, pathDialogOpen: false,
   pathTrigger: 'Learning path 00 · Diagnostic & setup Next · Explain the core ideas from memory',
+  pathTriggerCount: 1, pathOption: 'TFM professional syllabus',
+  loggingHelp: 'How to log: Log today with the circle. To backfill, select a habit name, then choose a day in the heatmap.',
+  heatmapMode: 'Logging: Move for 30 minutes',
   phases: 8, checkpointCount: 3,
   progress: '0', studyButton: 'Log today’s study',
   weekdays: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 });
 
-await evaluate(`document.querySelector('[data-action="open-path"]').click()`);
+await evaluate(`document.querySelector('[data-action="focus"][data-id="read"]').click()`);
+assert.equal(await evaluate(`document.querySelector('#heatmap-mode').textContent.trim()`), 'Logging: Read something nourishing');
+await evaluate(`document.querySelector('.heat-cell:not(.future)').click()`);
+assert.match(await evaluate(`document.querySelector('[data-action="focus"][data-id="read"] .habit-meta').textContent`), /1 completion recorded/);
+
+await evaluate(`document.querySelector('[data-action="open-path"][data-id="tfm-professional-practice"]').click()`);
 assert.equal(await evaluate(`document.querySelector('#path-dialog').open`), true);
 await evaluate(`document.querySelector('[data-action="toggle-checkpoint"]').click()`);
-assert.match(await evaluate(`document.querySelector('[data-action="open-path"]').textContent.replace(/\\s+/g, ' ').trim()`), /Next · Create the phase’s reproducible artifact$/);
-await evaluate(`document.querySelector('[data-action="toggle-tfm"]').click()`);
+assert.match(await evaluate(`document.querySelector('[data-action="open-path"][data-id="tfm-professional-practice"]').textContent.replace(/\\s+/g, ' ').trim()`), /Next · Create the phase’s reproducible artifact$/);
+await evaluate(`document.querySelector('[data-action="toggle-path-habit"]').click()`);
 assert.equal(await evaluate(`document.querySelector('#curriculum-percent').textContent`), '4%');
-assert.equal(await evaluate(`document.querySelector('[data-action="toggle-tfm"]').textContent.trim()`), '✓ Study logged today');
+assert.equal(await evaluate(`document.querySelector('[data-action="toggle-path-habit"]').textContent.trim()`), '✓ Study logged today');
+await evaluate(`document.querySelector('#close-path-dialog').click()`);
+
+await evaluate(`document.querySelector('[data-action="edit"][data-id="move"]').click()`);
+await evaluate(`(() => { document.querySelector('#habit-path').value = 'tfm-professional'; document.querySelector('#habit-form').requestSubmit(); })()`);
+assert.equal(await evaluate(`document.querySelectorAll('[data-action="open-path"]').length`), 2);
+await evaluate(`document.querySelector('[data-action="open-path"][data-id="move"]').click()`);
+assert.equal(await evaluate(`document.querySelector('#curriculum-percent').textContent`), '0%');
+await evaluate(`document.querySelector('#close-path-dialog').click()`);
 
 await send('Page.reload');
 await new Promise((resolve) => setTimeout(resolve, 600));
+assert.equal(await evaluate(`document.querySelectorAll('[data-action="open-path"]').length`), 2);
 assert.equal(await evaluate(`document.querySelector('[data-action="toggle-checkpoint"]').getAttribute('aria-pressed')`), 'true');
-assert.equal(await evaluate(`document.querySelector('[data-action="toggle-tfm"]').textContent.trim()`), '✓ Study logged today');
+assert.equal(await evaluate(`document.querySelector('[data-action="toggle-path-habit"]').textContent.trim()`), '✓ Study logged today');
 
-await evaluate(`document.querySelector('[data-action="open-path"]').click()`);
+await evaluate(`document.querySelector('[data-action="open-path"][data-id="move"]').click()`);
 await send('Emulation.setDeviceMetricsOverride', { width: 390, height: 844, deviceScaleFactor: 1, mobile: true });
 const mobile = await evaluate(`(() => ({
   viewport: document.documentElement.clientWidth,
@@ -97,6 +118,11 @@ assert.equal(mobile.viewport, 390);
 assert.equal(mobile.overflow, 390, `page should not overflow horizontally: ${JSON.stringify(mobile.overflowSources)}`);
 assert.ok(mobile.missionWidth <= 350, 'mission content should fit the mobile viewport');
 assert.equal(mobile.phaseRailScrollable, true, 'phase navigation should scroll horizontally on mobile');
+
+await evaluate(`document.querySelector('#close-path-dialog').click()`);
+await evaluate(`document.querySelector('[data-action="edit"][data-id="move"]').click()`);
+await evaluate(`(() => { document.querySelector('#habit-path').value = ''; document.querySelector('#habit-form').requestSubmit(); })()`);
+assert.equal(await evaluate(`document.querySelectorAll('[data-action="open-path"]').length`), 1, 'choosing no path detaches it from the habit');
 assert.deepEqual(errors, [], 'the core flow should produce no page console errors');
 
 socket.close();

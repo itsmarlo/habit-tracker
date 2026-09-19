@@ -42,7 +42,7 @@
             <div class="graph-legend" aria-label="Activity intensity legend"><span>Less</span><i class="level-0"></i><i class="level-1"></i><i class="level-2"></i><i class="level-3"></i><span>More</span></div>
           </div>
           <div class="heatmap-wrap" id="heatmap" aria-label="Yearly habit completion heatmap"></div>
-          <div class="graph-footer"><span id="completion-summary">0 commitments completed</span><span>Tap a day to inspect</span></div>
+          <div class="graph-footer"><span id="completion-summary">0 commitments completed</span><span id="heatmap-mode">Select a habit to log past days</span></div>
         </div>
         <aside class="stats-panel" aria-label="Commitment statistics">
           <div class="stat-block stat-featured"><span class="stat-label">Current streak</span><strong id="streak-stat">0</strong><span class="stat-note">days in a row</span></div>
@@ -57,6 +57,7 @@
           <div><p class="section-kicker">The only day that matters</p><h2 id="today-heading">Today’s commitments</h2></div>
           <span class="completion-pill" id="today-count">0 / 0 done</span>
         </div>
+        <p class="logging-help" id="logging-help"><strong>How to log:</strong> Log today with the circle. To backfill, select a habit name, then choose a day in the heatmap.</p>
         <div class="habit-list" id="habit-list"></div>
       </section>
     </main>
@@ -71,6 +72,7 @@
       <label class="field-label" for="habit-name">What are you practicing?</label>
       <input class="text-input" id="habit-name" name="name" type="text" placeholder="e.g. Read 20 pages" maxlength="40" required>
       <div class="field-row"><div><label class="field-label" for="habit-color">Color</label><input class="color-input" id="habit-color" name="color" type="color" value="#238636"></div><div class="field-help">You can change this anytime.<br>Make it yours.</div></div>
+      <div class="path-field"><label class="field-label" for="habit-path">Learning path <span>(optional)</span></label><select class="text-input select-input" id="habit-path" name="path"><option value="">No learning path</option><option value="tfm-professional">TFM professional syllabus</option></select><p class="field-help">Adds structured phases and evidence checkpoints to this habit.</p></div>
       <div class="dialog-actions"><button class="button button-quiet" id="cancel-dialog" type="button">Cancel</button><button class="button button-dark" type="submit">Save habit</button></div>
     </form>
   </dialog>
@@ -96,7 +98,7 @@
     </div>
   </dialog>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
-  <script src="curriculum.js?v=2"></script>
-  <script src="app.js?v=5"></script>
+  <script src="curriculum.js?v=3"></script>
+  <script src="app.js?v=6"></script>
 </body>
 </html>

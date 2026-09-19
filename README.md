@@ -24,12 +24,28 @@ Select any phase inside the Path dialog to see its focus, build artifact, gate, 
 
 The canonical plan is [Professional Syllabus: Tabular Foundation Models](docs/tfm-professional-syllabus.md). The current revision includes Molnar’s 2026 book sequence and the stronger reproduction and critical-reading protocol for Weeks 15–17.
 
+### Add the path to a habit
+
+1. Create a habit or choose **Edit** on an existing one.
+2. Under **Learning path**, select **TFM professional syllabus**.
+3. Save the habit, then open its new **Learning path** preview.
+
+Each attached habit keeps independent phase selections and evidence checkpoints. Choose **No learning path** in the edit dialog to detach it from a habit.
+
+## Logging habits
+
+- **Today:** select the circle beside a habit. Select it again to undo the completion.
+- **A past day:** select the habit’s name first. The graph footer changes to **Logging: _habit name_**. Then select any non-future square in the yearly heatmap.
+- **Switch habits:** select another habit name before choosing a heatmap day. The highlighted left border and graph footer identify the active habit.
+
+Heatmap squares expose the date, completion count, and selected habit through their tooltip and accessible label.
+
 ## Privacy and persistence
 
 All information stays in the browser’s `localStorage`; the app has no backend and sends no habit data to a server.
 
 - Habit history uses `commitment-graph-v1`.
-- TFM checkpoint progress uses the additive `tfm-learning-path-v1` record, keeping the existing habit backup schema compatible.
+- Learning-path attachments and per-habit checkpoint progress use the additive `habit-learning-paths-v1` record. Existing `tfm-learning-path-v1` progress is migrated when first loaded.
 - **Reset all data** clears both records after confirmation.
 
 Habit export/import currently covers habit history. Curriculum evidence remains local to the browser and is intentionally stored separately.
