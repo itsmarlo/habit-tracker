@@ -43,6 +43,8 @@ async function evaluate(expression) {
 
 await send('Runtime.enable');
 await send('Page.enable');
+await send('Network.enable');
+await send('Network.setCacheDisabled', { cacheDisabled: true });
 await send('Storage.clearDataForOrigin', { origin: appUrl, storageTypes: 'local_storage' });
 await send('Page.navigate', { url: appUrl });
 await new Promise((resolve) => setTimeout(resolve, 800));
@@ -52,11 +54,13 @@ const initial = await evaluate(`(() => ({
   phases: document.querySelectorAll('.phase-step').length,
   checkpointCount: document.querySelectorAll('.evidence-button').length,
   progress: document.querySelector('.curriculum-progress')?.getAttribute('aria-valuenow'),
-  studyButton: document.querySelector('[data-action="toggle-tfm"]')?.textContent.trim()
+  studyButton: document.querySelector('[data-action="toggle-tfm"]')?.textContent.trim(),
+  weekdays: [...document.querySelectorAll('.weekday-label')].map((label) => label.textContent)
 }))()`);
 assert.deepEqual(initial, {
   title: 'Tabular foundation models', phases: 8, checkpointCount: 3,
-  progress: '0', studyButton: 'Log today’s study'
+  progress: '0', studyButton: 'Log today’s study',
+  weekdays: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 });
 
 await evaluate(`document.querySelector('[data-action="toggle-checkpoint"]').click()`);

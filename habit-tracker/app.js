@@ -95,7 +95,7 @@ function renderHeatmap() {
   for (let date = new Date(start); date <= end; date.setDate(date.getDate() + 1)) days.push(new Date(date));
   const monthStarts = {};
   days.forEach((date, index) => { const week = Math.floor(index / 7); if (date.getFullYear() === year && date.getDate() === 1) monthStarts[week] = date.toLocaleDateString(undefined, { month: 'short' }); });
-  const cells = ['<div></div>', ...Array.from({ length: 53 }, (_, week) => `<span class="month-label" style="grid-column:${week + 2};grid-row:1">${monthStarts[week] || ''}</span>`), ...['Sun', '', 'Tue', '', 'Thu', '', 'Sat'].map((label, index) => `<span class="weekday-label" style="grid-column:1;grid-row:${index + 2}">${label}</span>`), ...days.map((date) => {
+  const cells = ['<div></div>', ...Array.from({ length: 53 }, (_, week) => `<span class="month-label" style="grid-column:${week + 2};grid-row:1">${monthStarts[week] || ''}</span>`), ...['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((label, index) => `<span class="weekday-label" style="grid-column:1;grid-row:${index + 2}">${label}</span>`), ...days.map((date) => {
     const key = dateKey(date); const count = state.habits.filter((habit) => isComplete(habit, key)).length; const future = date > today || date.getFullYear() !== year;
     const detail = `${key}: ${formatCount(count, 'habit')} complete`;
     return `<button class="heat-cell level-${Math.min(count, 3)} ${future ? 'future' : ''}" style="grid-column:${Math.floor(days.indexOf(date) / 7) + 2};grid-row:${(date.getDay() || 7) + 1}" type="button" data-date="${key}" title="${detail}" aria-label="${detail}" ${future ? 'disabled' : ''}></button>`;
