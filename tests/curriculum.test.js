@@ -3,6 +3,7 @@ const {
   PHASES,
   curriculumProgress,
   phaseForStudyDays,
+  phaseForEvidence,
   isValidCurriculumState
 } = require('../habit-tracker/curriculum.js');
 
@@ -11,6 +12,8 @@ assert.match(PHASES.find((phase) => phase.id === 'tfm-core').reading, /Molnar ch
 assert.equal(phaseForStudyDays(0).id, 'diagnostic', 'the plan starts at the diagnostic');
 assert.equal(phaseForStudyDays(30).id, 'baselines', '30 study days reaches phase 2');
 assert.equal(phaseForStudyDays(160).id, 'capstone', 'the final study day reaches the capstone');
+assert.equal(phaseForEvidence({ checkpoints: {} }).id, 'diagnostic', 'mastery starts at the first unfinished phase');
+assert.equal(phaseForEvidence({ checkpoints: { diagnostic: { learn: true, build: true, defend: true } } }).id, 'foundations', 'mastery advances only after all phase evidence is complete');
 
 const progress = curriculumProgress({
   checkpoints: {
