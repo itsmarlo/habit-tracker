@@ -4,6 +4,7 @@ const {
   curriculumProgress,
   phaseForStudyDays,
   phaseForEvidence,
+  isValidLearningPathsState,
   isValidCurriculumState
 } = require('../habit-tracker/curriculum.js');
 
@@ -26,5 +27,9 @@ assert.deepEqual(progress, { completed: 4, total: 24, percentage: 17 });
 assert.equal(isValidCurriculumState({ selectedPhase: 'foundations', checkpoints: {} }), true);
 assert.equal(isValidCurriculumState({ selectedPhase: 'invented', checkpoints: {} }), false);
 assert.equal(isValidCurriculumState({ selectedPhase: 'diagnostic', checkpoints: { diagnostic: { learn: 'yes' } } }), false);
+assert.equal(isValidLearningPathsState({ attachments: { read: 'tfm-professional' }, curricula: { read: { selectedPhase: 'diagnostic', checkpoints: {} } } }), true);
+assert.equal(isValidLearningPathsState({ attachments: { read: 'invented-template' }, curricula: {} }), false);
+assert.equal(isValidLearningPathsState({ attachments: { 'unsafe id': 'tfm-professional' }, curricula: {} }), false);
+assert.equal(isValidLearningPathsState({ attachments: 1, curricula: {} }), false);
 
 console.log('curriculum tests passed');

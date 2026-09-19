@@ -85,7 +85,16 @@
     );
   }
 
-  const api = { PHASES, CHECKPOINTS, phaseForStudyDays, phaseForEvidence, curriculumProgress, isValidCurriculumState };
+  function isValidLearningPathsState(candidate) {
+    if (!candidate || typeof candidate.attachments !== 'object' || typeof candidate.curricula !== 'object' || !candidate.attachments || !candidate.curricula) return false;
+    if (Array.isArray(candidate.attachments) || Array.isArray(candidate.curricula)) return false;
+    const validId = (id) => /^[\w-]+$/.test(id);
+    const attachmentsValid = Object.entries(candidate.attachments).every(([habitId, templateId]) => validId(habitId) && templateId === 'tfm-professional');
+    const curriculaValid = Object.entries(candidate.curricula).every(([habitId, curriculum]) => validId(habitId) && isValidCurriculumState(curriculum));
+    return attachmentsValid && curriculaValid;
+  }
+
+  const api = { PHASES, CHECKPOINTS, phaseForStudyDays, phaseForEvidence, curriculumProgress, isValidCurriculumState, isValidLearningPathsState };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   root.TfmCurriculum = api;
 }(typeof window === 'undefined' ? globalThis : window));
