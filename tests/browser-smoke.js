@@ -43,6 +43,7 @@ async function evaluate(expression) {
 
 await send('Runtime.enable');
 await send('Page.enable');
+await send('Storage.clearDataForOrigin', { origin: appUrl, storageTypes: 'local_storage' });
 await send('Page.navigate', { url: appUrl });
 await new Promise((resolve) => setTimeout(resolve, 800));
 
@@ -73,10 +74,14 @@ const mobile = await evaluate(`(() => ({
   viewport: document.documentElement.clientWidth,
   overflow: document.documentElement.scrollWidth,
   missionWidth: Math.round(document.querySelector('.mission-panel').getBoundingClientRect().width),
-  phaseRailScrollable: document.querySelector('.phase-rail').scrollWidth > document.querySelector('.phase-rail').clientWidth
+  phaseRailScrollable: document.querySelector('.phase-rail').scrollWidth > document.querySelector('.phase-rail').clientWidth,
+  overflowSources: [...document.querySelectorAll('body *')].filter((element) => {
+    const rect = element.getBoundingClientRect();
+    return rect.right > document.documentElement.clientWidth + 1 || rect.left < -1;
+  }).slice(0, 8).map((element) => ({ tag: element.tagName, className: element.className, rect: element.getBoundingClientRect().toJSON() }))
 }))()`);
 assert.equal(mobile.viewport, 390);
-assert.equal(mobile.overflow, 390, 'page should not overflow horizontally');
+assert.equal(mobile.overflow, 390, `page should not overflow horizontally: ${JSON.stringify(mobile.overflowSources)}`);
 assert.ok(mobile.missionWidth <= 350, 'mission content should fit the mobile viewport');
 assert.equal(mobile.phaseRailScrollable, true, 'phase navigation should scroll horizontally on mobile');
 assert.deepEqual(errors, [], 'the core flow should produce no page console errors');

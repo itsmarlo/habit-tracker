@@ -283,4 +283,3 @@ Maintain one row per assessed artifact:
 | | | | | | |
 
 The error log matters more than a streak of easy high scores. Repeated conceptual errors trigger focused remediation; unexplained performance claims trigger a full experimental audit.
-

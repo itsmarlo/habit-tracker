@@ -7,6 +7,7 @@ const {
 } = require('../habit-tracker/curriculum.js');
 
 assert.equal(PHASES.length, 8, 'the syllabus exposes all eight phases');
+assert.match(PHASES.find((phase) => phase.id === 'tfm-core').reading, /Molnar chapters 1–5/, 'the updated core reading sequence is included');
 assert.equal(phaseForStudyDays(0).id, 'diagnostic', 'the plan starts at the diagnostic');
 assert.equal(phaseForStudyDays(30).id, 'baselines', '30 study days reaches phase 2');
 assert.equal(phaseForStudyDays(160).id, 'capstone', 'the final study day reaches the capstone');
