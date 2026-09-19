@@ -27,16 +27,17 @@ The canonical plan is [Professional Syllabus: Tabular Foundation Models](docs/tf
 ### Add the path to a habit
 
 1. Create a habit or choose **Edit** on an existing one.
-2. Under **Learning path**, select **TFM professional syllabus**.
-3. Save the habit, then open its new **Learning path** preview.
+2. Under **Learning path**, select **TFM professional syllabus** or **Create a custom path**.
+3. For a custom path, provide a path name and enter one milestone per line.
+4. Save the habit, then open its new **Learning path** preview.
 
-Each attached habit keeps independent phase selections and evidence checkpoints. Choose **No learning path** in the edit dialog to detach it from a habit.
+Each attached habit keeps independent progress. TFM paths use phases and evidence checkpoints; custom paths use ordered milestones that you define. Choose **No learning path** in the edit dialog to detach it from a habit.
 
 ## Logging habits
 
 - **Today:** select the circle beside a habit. Select it again to undo the completion.
-- **A past day:** select the habit’s name first. The graph footer changes to **Logging: _habit name_**. Then select any non-future square in the yearly heatmap.
-- **Switch habits:** select another habit name before choosing a heatmap day. The highlighted left border and graph footer identify the active habit.
+- **A past day:** choose the habit from **Log habit** above the heatmap, then select any non-future square.
+- **Switch habits:** use **Log habit**, select a habit name, or click its completion circle. The highlighted left border and graph footer identify the active habit.
 
 Heatmap squares expose the date, completion count, and selected habit through their tooltip and accessible label.
 

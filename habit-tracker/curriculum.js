@@ -88,10 +88,24 @@
   function isValidLearningPathsState(candidate) {
     if (!candidate || typeof candidate.attachments !== 'object' || typeof candidate.curricula !== 'object' || !candidate.attachments || !candidate.curricula) return false;
     if (Array.isArray(candidate.attachments) || Array.isArray(candidate.curricula)) return false;
+    const customPaths = candidate.customPaths || {};
+    if (typeof customPaths !== 'object' || Array.isArray(customPaths)) return false;
     const validId = (id) => /^[\w-]+$/.test(id);
-    const attachmentsValid = Object.entries(candidate.attachments).every(([habitId, templateId]) => validId(habitId) && templateId === 'tfm-professional');
+    const attachmentsValid = Object.entries(candidate.attachments).every(([habitId, templateId]) => validId(habitId) && ['tfm-professional', 'custom'].includes(templateId));
     const curriculaValid = Object.entries(candidate.curricula).every(([habitId, curriculum]) => validId(habitId) && isValidCurriculumState(curriculum));
-    return attachmentsValid && curriculaValid;
+    const customPathsValid = Object.entries(customPaths).every(([habitId, path]) => {
+      if (!validId(habitId) || !path || typeof path.title !== 'string' || !path.title.trim() || path.title.length > 60 || !Array.isArray(path.steps) || !path.steps.length || path.steps.length > 20) return false;
+      const stepIds = new Set();
+      const stepTitles = new Set();
+      return path.steps.every((step) => {
+        if (!step || !validId(step.id) || stepIds.has(step.id) || typeof step.title !== 'string' || !step.title.trim() || step.title.length > 120 || stepTitles.has(step.title) || typeof step.complete !== 'boolean') return false;
+        stepIds.add(step.id);
+        stepTitles.add(step.title);
+        return true;
+      });
+    });
+    const customAttachmentsHavePaths = Object.entries(candidate.attachments).every(([habitId, templateId]) => templateId !== 'custom' || Boolean(customPaths[habitId]));
+    return attachmentsValid && curriculaValid && customPathsValid && customAttachmentsHavePaths;
   }
 
   const api = { PHASES, CHECKPOINTS, phaseForStudyDays, phaseForEvidence, curriculumProgress, isValidCurriculumState, isValidLearningPathsState };

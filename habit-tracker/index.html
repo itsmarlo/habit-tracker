@@ -39,7 +39,7 @@
               <p class="section-kicker">Your year in practice</p>
               <h2 id="year-heading">2026</h2>
             </div>
-            <div class="graph-legend" aria-label="Activity intensity legend"><span>Less</span><i class="level-0"></i><i class="level-1"></i><i class="level-2"></i><i class="level-3"></i><span>More</span></div>
+            <div class="graph-tools"><label class="heatmap-picker" for="heatmap-habit-select"><span>Log habit</span><select id="heatmap-habit-select" aria-label="Habit to log on the heatmap"></select></label><div class="graph-legend" aria-label="Activity intensity legend"><span>Less</span><i class="level-0"></i><i class="level-1"></i><i class="level-2"></i><i class="level-3"></i><span>More</span></div></div>
           </div>
           <div class="heatmap-wrap" id="heatmap" aria-label="Yearly habit completion heatmap"></div>
           <div class="graph-footer"><span id="completion-summary">0 commitments completed</span><span id="heatmap-mode">Select a habit to log past days</span></div>
@@ -72,7 +72,8 @@
       <label class="field-label" for="habit-name">What are you practicing?</label>
       <input class="text-input" id="habit-name" name="name" type="text" placeholder="e.g. Read 20 pages" maxlength="40" required>
       <div class="field-row"><div><label class="field-label" for="habit-color">Color</label><input class="color-input" id="habit-color" name="color" type="color" value="#238636"></div><div class="field-help">You can change this anytime.<br>Make it yours.</div></div>
-      <div class="path-field"><label class="field-label" for="habit-path">Learning path <span>(optional)</span></label><select class="text-input select-input" id="habit-path" name="path"><option value="">No learning path</option><option value="tfm-professional">TFM professional syllabus</option></select><p class="field-help">Adds structured phases and evidence checkpoints to this habit.</p></div>
+      <div class="path-field"><label class="field-label" for="habit-path">Learning path <span>(optional)</span></label><select class="text-input select-input" id="habit-path" name="path"><option value="">No learning path</option><option value="tfm-professional">TFM professional syllabus</option><option value="custom">Create a custom path</option></select><p class="field-help">Adds structured progress to this habit.</p></div>
+      <div class="custom-path-fields" id="custom-path-fields" hidden><label class="field-label" for="custom-path-title">Path name</label><input class="text-input" id="custom-path-title" type="text" maxlength="60" placeholder="e.g. Conversational Spanish"><label class="field-label" for="custom-path-steps">Milestones <span>(one per line)</span></label><textarea class="text-input milestone-input" id="custom-path-steps" rows="5" maxlength="1200" placeholder="Finish pronunciation course&#10;Hold a 10-minute conversation&#10;Read a short story"></textarea></div>
       <div class="dialog-actions"><button class="button button-quiet" id="cancel-dialog" type="button">Cancel</button><button class="button button-dark" type="submit">Save habit</button></div>
     </form>
   </dialog>
@@ -80,9 +81,9 @@
     <div class="path-dialog-shell">
       <div class="curriculum-heading-row">
         <div>
-          <p class="section-kicker">Learning path</p>
+          <p class="section-kicker" id="path-kicker">Learning path</p>
           <h2 id="curriculum-heading">Tabular foundation models</h2>
-          <p class="curriculum-intro">A 32-week route from sound tabular evaluation to a defensible professional capstone.</p>
+          <p class="curriculum-intro" id="path-intro">A 32-week route from sound tabular evaluation to a defensible professional capstone.</p>
         </div>
         <div class="path-dialog-actions">
           <div class="mastery-score" aria-live="polite"><strong id="curriculum-percent">0%</strong><span>evidence complete</span></div>
@@ -98,7 +99,7 @@
     </div>
   </dialog>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
-  <script src="curriculum.js?v=3"></script>
-  <script src="app.js?v=6"></script>
+  <script src="curriculum.js?v=4"></script>
+  <script src="app.js?v=8"></script>
 </body>
 </html>
