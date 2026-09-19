@@ -72,6 +72,10 @@
     return { completed, total, percentage: Math.round((completed / total) * 100) };
   }
 
+  function phaseForEvidence(state) {
+    return PHASES.find((phase) => !CHECKPOINTS.every((checkpoint) => state?.checkpoints?.[phase.id]?.[checkpoint] === true)) || PHASES[PHASES.length - 1];
+  }
+
   function isValidCurriculumState(candidate) {
     if (!candidate || !PHASES.some((phase) => phase.id === candidate.selectedPhase)) return false;
     if (!candidate.checkpoints || typeof candidate.checkpoints !== 'object' || Array.isArray(candidate.checkpoints)) return false;
@@ -81,7 +85,7 @@
     );
   }
 
-  const api = { PHASES, CHECKPOINTS, phaseForStudyDays, curriculumProgress, isValidCurriculumState };
+  const api = { PHASES, CHECKPOINTS, phaseForStudyDays, phaseForEvidence, curriculumProgress, isValidCurriculumState };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   root.TfmCurriculum = api;
 }(typeof window === 'undefined' ? globalThis : window));

@@ -50,7 +50,10 @@ await send('Page.navigate', { url: appUrl });
 await new Promise((resolve) => setTimeout(resolve, 800));
 
 const initial = await evaluate(`(() => ({
-  title: document.querySelector('#curriculum-heading')?.textContent,
+  title: document.querySelector('#path-dialog #curriculum-heading')?.textContent,
+  curriculumOnHome: Boolean(document.querySelector('main #curriculum-heading')),
+  pathDialogOpen: document.querySelector('#path-dialog')?.open,
+  pathTrigger: document.querySelector('[data-action="open-path"]')?.textContent.replace(/\\s+/g, ' ').trim(),
   phases: document.querySelectorAll('.phase-step').length,
   checkpointCount: document.querySelectorAll('.evidence-button').length,
   progress: document.querySelector('.curriculum-progress')?.getAttribute('aria-valuenow'),
@@ -58,12 +61,17 @@ const initial = await evaluate(`(() => ({
   weekdays: [...document.querySelectorAll('.weekday-label')].map((label) => label.textContent)
 }))()`);
 assert.deepEqual(initial, {
-  title: 'Tabular foundation models', phases: 8, checkpointCount: 3,
+  title: 'Tabular foundation models', curriculumOnHome: false, pathDialogOpen: false,
+  pathTrigger: 'Learning path 00 · Diagnostic & setup Next · Explain the core ideas from memory',
+  phases: 8, checkpointCount: 3,
   progress: '0', studyButton: 'Log today’s study',
   weekdays: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 });
 
+await evaluate(`document.querySelector('[data-action="open-path"]').click()`);
+assert.equal(await evaluate(`document.querySelector('#path-dialog').open`), true);
 await evaluate(`document.querySelector('[data-action="toggle-checkpoint"]').click()`);
+assert.match(await evaluate(`document.querySelector('[data-action="open-path"]').textContent.replace(/\\s+/g, ' ').trim()`), /Next · Create the phase’s reproducible artifact$/);
 await evaluate(`document.querySelector('[data-action="toggle-tfm"]').click()`);
 assert.equal(await evaluate(`document.querySelector('#curriculum-percent').textContent`), '4%');
 assert.equal(await evaluate(`document.querySelector('[data-action="toggle-tfm"]').textContent.trim()`), '✓ Study logged today');
@@ -73,6 +81,7 @@ await new Promise((resolve) => setTimeout(resolve, 600));
 assert.equal(await evaluate(`document.querySelector('[data-action="toggle-checkpoint"]').getAttribute('aria-pressed')`), 'true');
 assert.equal(await evaluate(`document.querySelector('[data-action="toggle-tfm"]').textContent.trim()`), '✓ Study logged today');
 
+await evaluate(`document.querySelector('[data-action="open-path"]').click()`);
 await send('Emulation.setDeviceMetricsOverride', { width: 390, height: 844, deviceScaleFactor: 1, mobile: true });
 const mobile = await evaluate(`(() => ({
   viewport: document.documentElement.clientWidth,

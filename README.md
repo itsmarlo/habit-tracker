@@ -1,6 +1,6 @@
 # Commitment Graph
 
-A private, browser-only habit tracker built around a GitHub-style yearly contribution graph. It includes a dedicated 32-week field guide for reaching professional proficiency in tabular foundation models (TFMs), turning the syllabus into daily practice, evidence checkpoints, and phase gates.
+A private, browser-only habit tracker built around a GitHub-style yearly contribution graph. The included tabular foundation model (TFM) habit carries a structured Learning Path that turns its professional syllabus into daily practice, evidence checkpoints, and phase gates without changing the general-purpose home experience.
 
 ## Quick start
 
@@ -14,13 +14,13 @@ Open [http://127.0.0.1:8000](http://127.0.0.1:8000).
 
 ## Tracking the TFM syllabus
 
-The **Professional field guide** adds three connected forms of progress:
+The **Study tabular foundation models** habit includes a compact Path preview showing the current mastery phase and next evidence step. Opening it reveals three connected forms of progress:
 
 - **Practice:** “Log today’s study” records the dedicated TFM habit in the yearly contribution graph. Five focused days advance the suggested weekly pace.
-- **Curriculum:** an eight-phase rail covers diagnostic setup, foundations, baselines, neural models, TFMs/PFNs, trustworthy evaluation, production, and the capstone.
+- **Curriculum:** an eight-phase Path covers diagnostic setup, foundations, baselines, neural models, TFMs/PFNs, trustworthy evaluation, production, and the capstone.
 - **Evidence:** every phase requires three explicit checkpoints—reconstruct the ideas, produce the artifact, and defend the gate. Curriculum progress reflects these 24 evidence checkpoints, not reading time alone.
 
-Select any phase to see its focus, build artifact, gate, and required score. The current recommendation follows study-day pace, but phase navigation remains open for review or catch-up.
+Select any phase inside the Path dialog to see its focus, build artifact, gate, and required score. Study days determine the suggested pace; the habit’s mastery phase advances only after all evidence checkpoints for the current phase are complete.
 
 The canonical plan is [Professional Syllabus: Tabular Foundation Models](docs/tfm-professional-syllabus.md). The current revision includes Molnar’s 2026 book sequence and the stronger reproduction and critical-reading protocol for Weeks 15–17.
 
@@ -66,4 +66,5 @@ tests/
 
 - Dependency-free HTML, CSS, and JavaScript preserve the original local-first architecture.
 - Daily practice and professional evidence are deliberately separate: showing up matters, but a phase only advances toward mastery when its artifacts and defense are complete.
-- Native buttons, visible focus states, accessible progress semantics, and horizontally scrollable phase navigation keep the field guide usable by keyboard and on small screens.
+- The TFM syllabus is scoped to its habit through a Learning Path; ordinary habits and the main dashboard remain domain-neutral.
+- Native buttons, visible focus states, accessible progress semantics, and horizontally scrollable phase navigation keep the Path usable by keyboard and on small screens.
