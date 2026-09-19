@@ -28,6 +28,9 @@ assert.equal(isValidCurriculumState({ selectedPhase: 'foundations', checkpoints:
 assert.equal(isValidCurriculumState({ selectedPhase: 'invented', checkpoints: {} }), false);
 assert.equal(isValidCurriculumState({ selectedPhase: 'diagnostic', checkpoints: { diagnostic: { learn: 'yes' } } }), false);
 assert.equal(isValidLearningPathsState({ attachments: { read: 'tfm-professional' }, curricula: { read: { selectedPhase: 'diagnostic', checkpoints: {} } } }), true);
+assert.equal(isValidLearningPathsState({ attachments: { read: 'custom' }, curricula: {}, customPaths: { read: { title: 'Read the classics', steps: [{ id: 'step-1', title: 'Choose a book', complete: false }] } } }), true);
+assert.equal(isValidLearningPathsState({ attachments: { read: 'custom' }, curricula: {}, customPaths: {} }), false);
+assert.equal(isValidLearningPathsState({ attachments: { read: 'custom' }, curricula: {}, customPaths: { read: { title: 'Read the classics', steps: [{ id: 'step-1', title: 'Choose a book', complete: false }, { id: 'step-2', title: 'Choose a book', complete: false }] } } }), false);
 assert.equal(isValidLearningPathsState({ attachments: { read: 'invented-template' }, curricula: {} }), false);
 assert.equal(isValidLearningPathsState({ attachments: { 'unsafe id': 'tfm-professional' }, curricula: {} }), false);
 assert.equal(isValidLearningPathsState({ attachments: 1, curricula: {} }), false);

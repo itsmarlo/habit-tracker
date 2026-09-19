@@ -22,10 +22,13 @@ const els = {
   todayCount: document.querySelector('#today-count'), summary: document.querySelector('#completion-summary'),
   dialog: document.querySelector('#habit-dialog'), pathDialog: document.querySelector('#path-dialog'), form: document.querySelector('#habit-form'),
   name: document.querySelector('#habit-name'), color: document.querySelector('#habit-color'), path: document.querySelector('#habit-path'), id: document.querySelector('#habit-id'),
+  customPathFields: document.querySelector('#custom-path-fields'), customPathTitle: document.querySelector('#custom-path-title'), customPathSteps: document.querySelector('#custom-path-steps'),
   toast: document.querySelector('#toast'), phaseRail: document.querySelector('#phase-rail'),
   mission: document.querySelector('#mission-panel'), practice: document.querySelector('#practice-panel'),
   curriculumPercent: document.querySelector('#curriculum-percent'), curriculumBar: document.querySelector('#curriculum-progress-bar'),
-  curriculumProgress: document.querySelector('.curriculum-progress'), heatmapMode: document.querySelector('#heatmap-mode')
+  curriculumProgress: document.querySelector('.curriculum-progress'), curriculumLayout: document.querySelector('.curriculum-layout'),
+  pathKicker: document.querySelector('#path-kicker'), pathTitle: document.querySelector('#curriculum-heading'), pathIntro: document.querySelector('#path-intro'), heatmapMode: document.querySelector('#heatmap-mode'),
+  heatmapHabit: document.querySelector('#heatmap-habit-select')
 };
 
 document.querySelector('#today-label').textContent = today.toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' });
@@ -45,9 +48,9 @@ function emptyCurriculumState() { return { selectedPhase: 'diagnostic', checkpoi
 function loadLearningPathsState() {
   try {
     const saved = JSON.parse(localStorage.getItem(LEARNING_PATHS_STORAGE_KEY));
-    if (TfmCurriculum.isValidLearningPathsState(saved)) return saved;
+    if (TfmCurriculum.isValidLearningPathsState(saved)) return { ...saved, customPaths: saved.customPaths || {} };
   } catch (error) { /* Migrate or start clean below. */ }
-  const learningPathState = { attachments: {}, curricula: {} };
+  const learningPathState = { attachments: {}, curricula: {}, customPaths: {} };
   if (state.habits.some((habit) => habit.id === TFM_HABIT_ID)) {
     let legacy = emptyCurriculumState();
     try {
@@ -103,7 +106,14 @@ function renderHabits() {
   }).join('');
 }
 function renderPathPreview(habit) {
-  if (learningPaths.attachments[habit.id] !== 'tfm-professional') return '';
+  const attachment = learningPaths.attachments[habit.id];
+  if (!attachment) return '';
+  if (attachment === 'custom') {
+    const path = learningPaths.customPaths[habit.id];
+    const completed = path.steps.filter((step) => step.complete).length;
+    const nextStep = path.steps.find((step) => !step.complete)?.title || 'Path complete — review your progress';
+    return `<button class="path-preview" type="button" data-action="open-path" data-id="${habit.id}"><span><b>Learning path</b> ${completed}/${path.steps.length} · ${escapeHtml(path.title)}</span> <small>Next · ${escapeHtml(nextStep)}</small></button>`;
+  }
   const curriculum = curriculumForHabit(habit.id);
   const phase = TfmCurriculum.phaseForEvidence(curriculum);
   const checkpoints = curriculum.checkpoints[phase.id] || {};
@@ -141,10 +151,17 @@ function renderStats() {
   els.summary.textContent = `${formatCount(allCompletionDates().reduce((sum, key) => sum + state.habits.filter((habit) => isComplete(habit, key)).length, 0), 'commitment')} completed`;
   els.streak.textContent = currentStreak(); els.month.textContent = possible ? `${Math.round((kept / possible) * 100)}%` : '0%';
   els.best.textContent = best ? best.name : '—'; els.bestNote.textContent = best ? `${completionCount(best)} total recorded` : 'Start a habit to see it here';
+  els.heatmapHabit.innerHTML = state.habits.map((habit) => `<option value="${habit.id}">${escapeHtml(habit.name)}</option>`).join('');
+  els.heatmapHabit.disabled = !state.habits.length;
+  if (selectedHabitId) els.heatmapHabit.value = selectedHabitId;
   els.heatmapMode.textContent = selectedHabitId && state.habits.some((habit) => habit.id === selectedHabitId) ? `Logging: ${state.habits.find((habit) => habit.id === selectedHabitId).name}` : 'Select a habit to log past days';
 }
 function renderCurriculum() {
   const habit = state.habits.find((item) => item.id === activePathHabitId);
+  if (learningPaths.attachments[activePathHabitId] === 'custom') {
+    renderCustomPath(habit, learningPaths.customPaths[activePathHabitId]);
+    return;
+  }
   const curriculum = curriculumForHabit(activePathHabitId);
   const studyDays = habit ? completionCount(habit) : 0;
   const paceWeek = Math.min(32, Math.ceil(studyDays / 5));
@@ -159,6 +176,10 @@ function renderCurriculum() {
     defend: ['Defend', 'Pass the gate and record the evidence']
   };
 
+  els.pathKicker.textContent = 'Learning path';
+  els.pathTitle.textContent = 'Tabular foundation models';
+  els.pathIntro.textContent = 'A 32-week route from sound tabular evaluation to a defensible professional capstone.';
+  els.curriculumLayout.classList.remove('custom-path-layout');
   els.curriculumPercent.textContent = `${progress.percentage}%`;
   els.curriculumBar.style.width = `${progress.percentage}%`;
   els.curriculumProgress.setAttribute('aria-valuenow', progress.percentage);
@@ -169,16 +190,49 @@ function renderCurriculum() {
   els.mission.innerHTML = `<div class="mission-topline"><span>${selected.weeks}</span><span>${selected.target ? `Gate ≥ ${selected.target}` : 'Placement gate'}</span></div><p class="mission-label">${selected.short}</p><h3>${selected.title}</h3><p class="mission-focus">${selected.focus}</p>${selected.reading ? `<p class="assigned-reading"><strong>Assigned reading</strong>${selected.reading}</p>` : ''}<dl class="mission-brief"><div><dt>Build</dt><dd>${selected.build}</dd></div><div><dt>Gate</dt><dd>${selected.gate}</dd></div></dl><div class="evidence-list"><p>Evidence checkpoints</p>${TfmCurriculum.CHECKPOINTS.map((key) => `<button type="button" class="evidence-button ${checkpoints[key] ? 'complete' : ''}" data-action="toggle-checkpoint" data-phase="${selected.id}" data-checkpoint="${key}" aria-pressed="${Boolean(checkpoints[key])}"><span class="evidence-check" aria-hidden="true">${checkpoints[key] ? '✓' : ''}</span><span><strong>${checkpointCopy[key][0]}</strong><small>${checkpointCopy[key][1]}</small></span></button>`).join('')}</div>`;
   els.practice.innerHTML = `<p class="section-kicker">Field rhythm</p><div class="pace-readout"><strong>${String(paceWeek).padStart(2, '0')}</strong><span>of 32<br>weeks paced</span></div><p class="pace-note">${studyDays} focused ${studyDays === 1 ? 'day' : 'days'} logged · target 5 per week</p><div class="rhythm-bars" aria-label="Recommended weekly time split"><div><span style="width:40%"></span><b>40% Build</b></div><div><span style="width:40%"></span><b>40% Study</b></div><div><span style="width:20%"></span><b>20% Critique</b></div></div>${habit ? `<button class="button ${todayLogged ? 'button-complete' : 'button-dark'} practice-action" type="button" data-action="toggle-path-habit" data-id="${habit.id}">${todayLogged ? '✓ Study logged today' : 'Log today’s study'}</button>` : ''}<p class="current-route"><span>Now recommended</span><strong>${recommended.number} · ${recommended.title}</strong></p>`;
 }
+function renderCustomPath(habit, path) {
+  const completed = path.steps.filter((step) => step.complete).length;
+  const percentage = Math.round((completed / path.steps.length) * 100);
+  const nextStep = path.steps.find((step) => !step.complete);
+  const todayLogged = habit ? isComplete(habit) : false;
+  els.pathKicker.textContent = 'Custom learning path';
+  els.pathTitle.textContent = path.title;
+  els.pathIntro.textContent = `${path.steps.length} ordered milestones attached to ${habit.name}.`;
+  els.curriculumLayout.classList.add('custom-path-layout');
+  els.curriculumPercent.textContent = `${percentage}%`;
+  els.curriculumBar.style.width = `${percentage}%`;
+  els.curriculumProgress.setAttribute('aria-valuenow', percentage);
+  els.phaseRail.innerHTML = '';
+  els.mission.innerHTML = `<div class="mission-topline"><span>Milestones</span><span>${completed} of ${path.steps.length} complete</span></div><p class="mission-label">Make progress visible</p><h3>${nextStep ? `Next: ${escapeHtml(nextStep.title)}` : 'Path complete'}</h3><p class="mission-focus">Complete milestones when you have evidence—not merely when you have spent time.</p><div class="custom-step-list">${path.steps.map((step, index) => `<button type="button" class="custom-step ${step.complete ? 'complete' : ''}" data-action="toggle-custom-step" data-step-id="${step.id}" aria-pressed="${step.complete}"><span class="evidence-check" aria-hidden="true">${step.complete ? '✓' : ''}</span><span><small>${String(index + 1).padStart(2, '0')}</small><strong>${escapeHtml(step.title)}</strong></span></button>`).join('')}</div>`;
+  els.practice.innerHTML = `<p class="section-kicker">Consistency</p><div class="pace-readout"><strong>${String(completionCount(habit)).padStart(2, '0')}</strong><span>focused<br>days logged</span></div><p class="pace-note">Practice days and milestone evidence are tracked separately.</p><button class="button ${todayLogged ? 'button-complete' : 'button-dark'} practice-action" type="button" data-action="toggle-path-habit" data-id="${habit.id}">${todayLogged ? '✓ Practice logged today' : 'Log today’s practice'}</button><p class="current-route"><span>Next milestone</span><strong>${nextStep ? escapeHtml(nextStep.title) : 'Review and define what comes next'}</strong></p>`;
+}
 function render() { renderHabits(); renderHeatmap(); renderStats(); renderCurriculum(); }
 function escapeHtml(value) { return value.replace(/[&<>'"]/g, (character) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[character])); }
-function openDialog(habit) { els.id.value = habit?.id || ''; els.name.value = habit?.name || ''; els.color.value = habit?.color || '#238636'; els.path.value = habit ? learningPaths.attachments[habit.id] || '' : ''; document.querySelector('#dialog-title').textContent = habit ? 'Edit habit' : 'Add a habit'; document.querySelector('#dialog-kicker').textContent = habit ? 'Adjust your practice' : 'New practice'; els.dialog.showModal(); els.name.focus(); }
+function toggleCustomPathFields() { els.customPathFields.hidden = els.path.value !== 'custom'; }
+function openDialog(habit) {
+  const customPath = habit ? learningPaths.customPaths[habit.id] : null;
+  els.id.value = habit?.id || '';
+  els.name.value = habit?.name || '';
+  els.color.value = habit?.color || '#238636';
+  els.path.value = habit ? learningPaths.attachments[habit.id] || '' : '';
+  els.customPathTitle.value = customPath?.title || '';
+  els.customPathSteps.value = customPath?.steps.map((step) => step.title).join('\n') || '';
+  toggleCustomPathFields();
+  document.querySelector('#dialog-title').textContent = habit ? 'Edit habit' : 'Add a habit';
+  document.querySelector('#dialog-kicker').textContent = habit ? 'Adjust your practice' : 'New practice';
+  els.dialog.showModal();
+  els.name.focus();
+}
 function showToast(message) { els.toast.textContent = message; els.toast.classList.add('visible'); clearTimeout(showToast.timer); showToast.timer = setTimeout(() => els.toast.classList.remove('visible'), 2400); }
 
 document.addEventListener('click', (event) => {
   const control = event.target.closest('[data-action]');
   const action = control?.dataset.action;
   if (action === 'add') openDialog();
-  if (action === 'toggle') toggleCompletion(control.dataset.id);
+  if (action === 'toggle') {
+    selectedHabitId = control.dataset.id;
+    toggleCompletion(control.dataset.id);
+  }
   if (action === 'focus') {
     selectedHabitId = control.dataset.id;
     render();
@@ -206,6 +260,17 @@ document.addEventListener('click', (event) => {
     renderHabits();
     showToast('Evidence checkpoint updated');
   }
+  if (action === 'toggle-custom-step') {
+    const path = learningPaths.customPaths[activePathHabitId];
+    const step = path.steps.find((item) => item.id === control.dataset.stepId);
+    if (step) {
+      step.complete = !step.complete;
+      persistLearningPaths();
+      renderCurriculum();
+      renderHabits();
+      showToast('Milestone updated');
+    }
+  }
   if (action === 'toggle-path-habit') {
     toggleCompletion(control.dataset.id);
     const habit = state.habits.find((item) => item.id === control.dataset.id);
@@ -218,6 +283,7 @@ document.addEventListener('click', (event) => {
     state.habits = state.habits.filter((item) => item.id !== control.dataset.id);
     delete learningPaths.attachments[control.dataset.id];
     delete learningPaths.curricula[control.dataset.id];
+    delete learningPaths.customPaths[control.dataset.id];
     selectedHabitId = state.habits[0]?.id || null;
     if (activePathHabitId === control.dataset.id) activePathHabitId = null;
     persist();
@@ -238,11 +304,22 @@ document.querySelector('#add-habit-button').addEventListener('click', () => open
 document.querySelector('#cancel-dialog').addEventListener('click', () => els.dialog.close());
 document.querySelector('#close-dialog').addEventListener('click', () => els.dialog.close());
 document.querySelector('#close-path-dialog').addEventListener('click', () => els.pathDialog.close());
+els.heatmapHabit.addEventListener('change', () => { selectedHabitId = els.heatmapHabit.value; render(); showToast(`${state.habits.find((habit) => habit.id === selectedHabitId).name} selected for heatmap logging`); });
+els.path.addEventListener('change', toggleCustomPathFields);
 els.form.addEventListener('submit', (event) => {
   event.preventDefault();
   const name = els.name.value.trim();
   if (!name) { els.name.setCustomValidity('Enter a habit name.'); els.name.reportValidity(); return; }
   els.name.setCustomValidity('');
+  const customTitle = els.customPathTitle.value.trim();
+  const customStepTitles = els.customPathSteps.value.split('\n').map((step) => step.trim()).filter(Boolean);
+  if (els.path.value === 'custom' && !customTitle) { els.customPathTitle.setCustomValidity('Enter a path name.'); els.customPathTitle.reportValidity(); return; }
+  if (els.path.value === 'custom' && !customStepTitles.length) { els.customPathSteps.setCustomValidity('Add at least one milestone.'); els.customPathSteps.reportValidity(); return; }
+  if (els.path.value === 'custom' && customStepTitles.length > 20) { els.customPathSteps.setCustomValidity('Use no more than 20 milestones.'); els.customPathSteps.reportValidity(); return; }
+  if (els.path.value === 'custom' && customStepTitles.some((title) => title.length > 120)) { els.customPathSteps.setCustomValidity('Keep each milestone to 120 characters or fewer.'); els.customPathSteps.reportValidity(); return; }
+  if (els.path.value === 'custom' && new Set(customStepTitles).size !== customStepTitles.length) { els.customPathSteps.setCustomValidity('Each milestone must be unique.'); els.customPathSteps.reportValidity(); return; }
+  els.customPathTitle.setCustomValidity('');
+  els.customPathSteps.setCustomValidity('');
   let habit = state.habits.find((item) => item.id === els.id.value);
   if (habit) {
     habit.name = name;
@@ -256,9 +333,22 @@ els.form.addEventListener('submit', (event) => {
   if (els.path.value === 'tfm-professional') {
     learningPaths.attachments[habit.id] = els.path.value;
     ensureCurriculumForHabit(habit.id);
+    delete learningPaths.customPaths[habit.id];
+  } else if (els.path.value === 'custom') {
+    const existingSteps = learningPaths.customPaths[habit.id]?.steps || [];
+    learningPaths.attachments[habit.id] = 'custom';
+    learningPaths.customPaths[habit.id] = {
+      title: customTitle,
+      steps: customStepTitles.map((title) => {
+        const existing = existingSteps.find((step) => step.title === title);
+        return existing || { id: `step-${crypto.randomUUID()}`, title, complete: false };
+      })
+    };
+    delete learningPaths.curricula[habit.id];
   } else {
     delete learningPaths.attachments[habit.id];
     delete learningPaths.curricula[habit.id];
+    delete learningPaths.customPaths[habit.id];
     if (activePathHabitId === habit.id) activePathHabitId = null;
   }
   persist();
@@ -268,5 +358,5 @@ els.form.addEventListener('submit', (event) => {
 });
 document.querySelector('#export-button').addEventListener('click', () => { const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' }); const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = `commitment-graph-${dateKey(today)}.json`; link.click(); URL.revokeObjectURL(link.href); showToast('Backup downloaded'); });
 document.querySelector('#import-input').addEventListener('change', (event) => { const file = event.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = () => { try { const imported = JSON.parse(reader.result); if (!isValidState(imported)) throw new Error('Invalid backup'); state = imported; selectedHabitId = state.habits[0]?.id || null; persist(); render(); showToast('Backup restored'); } catch (error) { showToast('That backup could not be read'); } }; reader.readAsText(file); event.target.value = ''; });
-document.querySelector('#clear-data-button').addEventListener('click', () => { if (confirm('Reset all habits, learning paths, and history?')) { state = { habits: [] }; learningPaths = { attachments: {}, curricula: {} }; activePathHabitId = null; selectedHabitId = null; persist(); persistLearningPaths(); render(); showToast('All data reset'); } });
+document.querySelector('#clear-data-button').addEventListener('click', () => { if (confirm('Reset all habits, learning paths, and history?')) { state = { habits: [] }; learningPaths = { attachments: {}, curricula: {}, customPaths: {} }; activePathHabitId = null; selectedHabitId = null; persist(); persistLearningPaths(); render(); showToast('All data reset'); } });
 render();
